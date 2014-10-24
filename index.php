@@ -40,6 +40,7 @@ table { margin: 0 auto; }
 <li class="active"><a href="#compose" data-toggle="tab">Compose</a></li>
 <li><a href="#inbox" data-toggle="tab"><span id="inboxtotal"  class="badge pull-left"></span><span style="padding-left: 5px;">Inbox</span></a></li>
 <li><a href="#sent" data-toggle="tab"><span id="senttotal" class="badge pull-left"></span><span style="padding-left: 5px;">Sent</span></a></li>
+<li><a href="#templates" data-toggle="tab">SMS Templates</a></li>
 </ul>
 <div id="my-tab-content" class="tab-content">
 
@@ -48,24 +49,40 @@ table { margin: 0 auto; }
 //print_r($_POST);
 //echo "</pre>";
 if (isset($_POST['compose'])) {
-    //call compose function
-    $return_call = $sms->compose_sms($_POST['type'], $_POST['msgtonumber'], $_POST['msgtext']);
-    if ($return_call == 1) {
+    
+    //save to template
+    if($_POST['save_template']){
+        $return_call = $sms->compose_sms($_POST['msgtonumber'], $_POST['msgtext'],"templates");
+        if ($return_call) {
         //success
         echo '<br><div class="alert alert-success" role="alert">
+             The sms has been saved as template
+             </div>';
+        } 
+        else  {
+            //write to outgoing folder failed
+            echo '<br><div class="alert alert-danger" role="alert">
+             '.SMS::$last_error.'
+             </div>';
+        }
+    }
+    else{
+        //call compose function
+        $return_call = $sms->compose_sms($_POST['msgtonumber'], $_POST['msgtext']);
+        if ($return_call) {
+            //success
+            echo '<br><div class="alert alert-success" role="alert">
              The sms file has been written to outgoing folder, It will appear on sent tab after the SMS Server tools successfully send it, Please refresh!
              </div>';
-    } else if ($return_call == 0) {
-        //write to outgoing folder failed
-        echo '<br><div class="alert alert-danger" role="alert">
-             Attempt to write sms in outgoing folder failed!
+        } else  {
+            //write to outgoing folder failed
+            echo '<br><div class="alert alert-danger" role="alert">
+             '.SMS::$last_error.'
              </div>';
-    } else {
-        //text length exceeded
-        echo '<br><div class="alert alert-danger" role="alert">
-             The text length exceed 160 characters!
-             </div>';
+        }
     }
+    
+    
 } else if (isset($_POST["inbox_delete"])) {
     //delete sms in inbox
     foreach ($_POST["filename"] as $file) {
@@ -78,6 +95,38 @@ if (isset($_POST['compose'])) {
         $sms->delete_sms(2, $file);
     }
     
+}
+else if(isset($_POST['sms_templates'])){
+    if(isset($_POST['delete'])){
+        //delete sms in template
+        foreach ($_POST["filename"] as $file) {
+            $sms->delete_sms(0, $file);
+        }
+    }
+    else{
+        //echo "<pre>";
+//            print_r($_POST);
+//            echo "</pre>";
+//            exit;
+        
+        foreach ($_POST["filename"] as $file) {
+            
+            
+            $return_call = $sms->compose_sms($_POST['msg'][$file]['to'], $_POST['msg'][$file]['text']);
+            if ($return_call) {
+                //success
+                echo '<br><div class="alert alert-success" role="alert">
+                SMS saved to outgoing, once it is sent it will appear on sent box
+                </div>';
+            } 
+            else  {
+                //write to outgoing folder failed
+                echo '<br><div class="alert alert-danger" role="alert">
+                '.SMS::$last_error.'
+                 </div>';
+            }
+        }
+    }
 }
 
 
@@ -102,16 +151,13 @@ $(".nav-tabs a[href=#sent]").tab("show") ;
     <table  style="width:100%;">  
     
     <tr>
-    <td><strong>Type: </strong></td>
-    <td> <select name="type">
-  <option value="1">Normal Number</option>
-  <option value="2">Short Number</option>
-</select> </td>
+    <td><strong>Note:</strong></td>
+    <td> <p>Default is for Malaysia number</p> </td>
     </tr>
     
       <tr>
         <td  ><strong>To Number: </strong></td>
-        <td > <input type="text" id="msgtonumber" name="msgtonumber" value="+6" name="msgLen" onfocus="setbg('#d9ffd9',this.id);" onblur="setbg('#f0f5e6',this.id)"  size="50" maxlength="10"  /></td>
+        <td > <input type="text" id="msgtonumber" name="msgtonumber" placeholder="+60176784332" name="msgLen" onfocus="setbg('#d9ffd9',this.id);" onblur="setbg('#f0f5e6',this.id)"  size="30" maxlength="15"  /></td>
       </tr>    
 
       <tr>
@@ -124,7 +170,10 @@ $(".nav-tabs a[href=#sent]").tab("show") ;
         </td>
       </tr>          
       <tr>
-        <td colspan="2" align="center"><input class="btn btn-primary" type="submit" id="submit" value="Send"  /></td>
+        <td colspan="2" align="center">
+        <input class="btn btn-primary" type="submit" id="submit" value="Send"  />
+        <input class="btn btn-default" name="save_template" type="submit" id="submit" value="Save as template"  />
+        </td>
       </tr>    </table></form>
 </div>
 
@@ -139,8 +188,8 @@ $(".nav-tabs a[href=#sent]").tab("show") ;
   <input type="hidden" name="inbox_delete" />
   <table class="table">
     <thead>
-        <th width="5%"></th>
-        <th width="15%">Date & Time</th>
+        <th width="2%"></th>
+        <th width="18%">Date & Time</th>
         <th width="10%">From</th>
         <th width="70%">Text</th>
     </thead>
@@ -167,7 +216,6 @@ foreach ($inbox as $in) {
 </div>
 </div>
 
-
 <div class="tab-pane" id="sent">
 <h1>Sent</h1>
 <div class="panel panel-default">
@@ -179,8 +227,8 @@ foreach ($inbox as $in) {
   <input type="hidden" name="sent_delete" />
   <table class="table">
     <thead>
-        <th width="5%"></th>
-        <th width="15%">Date & Time</th>
+        <th width="2%"></th>
+        <th width="18%">Date & Time</th>
         <th width="10%">To</th>
         <th width="70%">Text</th>
     </thead>
@@ -200,6 +248,48 @@ foreach ($sent as $se) {
 
   </table>
   <input class="btn btn-danger" type="submit" id="delete" value="Delete"  />
+  </form>
+  </div>
+
+  
+</div>
+</div>
+
+
+<div class="tab-pane" id="templates">
+<h1>SMS Templates</h1>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading"></div>
+  <div class="panel-body">
+    <!-- Table -->
+  <form method="POST" action="">
+  <input type="hidden" name="sms_templates" />
+  <table class="table">
+    <thead>
+        <th width="2%"></th>
+        <th width="10%">To</th>
+        <th width="88%">Text</th>
+    </thead>
+    <tbody>
+        <?php
+        $templates = $sms->get_templates();
+        foreach ($templates as $tpl) {
+            echo '<tr>';
+            echo '<td><input name="filename[]" value="' . $tpl["filename"] . '" type="checkbox"></td>';
+            echo '<input name="msg['.$tpl["filename"].'][to]" value="' . $tpl["to"] . '" type="hidden">';
+            echo '<input name="msg['.$tpl["filename"].'][text]" value="' . $tpl["text"] . '" type="hidden">';
+            echo '<td>' . $tpl["to"] . '</td>';
+            echo '<td>' . $tpl["text"] . '</td>';
+            echo '</tr>';
+        }
+        ?>
+    </tbody>
+        
+
+  </table>
+  <input class="btn btn-danger" type="submit" name="delete" value="Delete"  />
+  <input class="btn btn-primary" type="submit" name="send" value="Send"  />
   </form>
   </div>
 
