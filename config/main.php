@@ -3,7 +3,7 @@
 require_once 'helpers.php';
 
 $app->setConfig('siteName', 'SMS Tools 3 Web');
-$app->setConfig('developmentMode', true);
+$app->setConfig('developmentMode', false);
 $app->setConfig('smsdConf', '/etc/smsd.conf');
 
 $app->setConfig('username', 'admin');
