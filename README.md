@@ -1,11 +1,13 @@
 SMS Tools3 Web
 =====================
 
-Web interface for [SMS Tools 3](smstools3-openwrt-web) that should works 
+Web interface for [SMS Tools 3](http://smstools3.kekekasvi.com/) that should works 
 on OpenWrt. 
 
 Screenshot
 -------------------
+
+![alt tag](https://github.com/mahadirz/smstools3-openwrt-web/raw/master/screenshot.png)
 
 Frameworks Used
 -------------------
