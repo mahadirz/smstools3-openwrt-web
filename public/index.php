@@ -45,7 +45,17 @@ try {
 
 	$errorMessage = $errorCode . date(' r ') . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine();
 
-	file_put_contents('log/exceptions.log', "\n" . $errorMessage . "\n" . $e->getTraceAsString() . "\n", FILE_APPEND);
+	if(isset($app))
+        if($app->getConfig('developmentMode'))
+        {
+            echo '<pre>';
+            echo $errorMessage."<br>\n";
+            echo $e->getTraceAsString()."<br>\n";
+            echo '</pre>';
+            exit();
+        }
+
+    file_put_contents('log/exceptions.log', "\n" . $errorMessage . "\n" . $e->getTraceAsString() . "\n", FILE_APPEND);
 
 	exit('Exception: ' . $errorCode . '<br><br><small>The issue has been logged. Please contact the website administrator.</small>');
 }

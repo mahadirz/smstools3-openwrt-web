@@ -169,13 +169,17 @@ class Sms extends LibraryAbstract
                     preg_match('/To:[\s]s?([\s\S]+?)\n/', $contents, $matches_to);
                     preg_match('/[\n]{2}([\s\S]+)/', $contents, $matches_text);
 
-                    $simpleMessaging = new SimpleMessaging();
-                    $simpleMessaging
-                        ->setToNumber($matches_to[1])
-                        ->setText(trim($matches_text[1]))
-                        ->setFileName($file);
-                    
-                    $arr[] = $simpleMessaging;
+                    if($matches_to || $matches_text )
+                    {
+                        $simpleMessaging = new SimpleMessaging();
+                        $simpleMessaging
+                            ->setToNumber($matches_to[1])
+                            ->setText(trim($matches_text[1]))
+                            ->setFileName($file);
+
+                        $arr[] = $simpleMessaging;
+                    }
+
                 }
             }
         }
@@ -255,9 +259,9 @@ class Sms extends LibraryAbstract
 
                         $simpleMessaging = new SimpleMessaging();
                         $simpleMessaging
-                            ->setFromNumber($matches_from[1])
-                            ->setSentDateTime($matches_sentDateTime[1])
-                            ->setReceiveDateTime($matches_receiveDateTime[1])
+                            ->setFromNumber(trim($matches_from[1]))
+                            ->setSentDateTime(trim($matches_sentDateTime[1]))
+                            ->setReceiveDateTime(trim($matches_receiveDateTime[1]))
                             ->setText(trim($matches_text[1]))
                             ->setFileName($file);
 
@@ -349,8 +353,8 @@ class Sms extends LibraryAbstract
 
                         $simpleMessaging = new SimpleMessaging();
                         $simpleMessaging
-                            ->setFromNumber($matches_to[1])
-                            ->setSentDateTime($matches_sentDateTime[1])
+                            ->setFromNumber(trim($matches_to[1]))
+                            ->setSentDateTime(trim($matches_sentDateTime[1]))
                             ->setText(trim($matches_text[1]))
                             ->setFileName($file);
 
